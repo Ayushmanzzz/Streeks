@@ -8,6 +8,7 @@ from app.utils.security import hash_password
 from app.schemas.user_schema import (UserCreate, UserLogin)
 from app.utils.security import (hash_password, verify_password)
 from app.utils.token import create_access_token
+from app.services.auth_service import get_current_user
 
 router = APIRouter()
 
@@ -61,4 +62,14 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer"
+    }
+
+@router.get("/me")
+def me(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email
     }
