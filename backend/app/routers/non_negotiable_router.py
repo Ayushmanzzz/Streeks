@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from datetime import date, timedelta
+from datetime import date
 
 from app.database import get_db
 from app.models.non_negotiable_model import NonNegotiable
@@ -11,9 +11,9 @@ from app.services.auth_service import (get_current_user)
 
 
 from app.models.non_negotiable_log_model import (NonNegotiableLog)
-
 from app.schemas.non_negotiable_log_schema import (NonNegotiableLogCreate)
-
+from app.services.analytics_service import (calculate_current_streak, calculate_longest_streak, calculate_completion_rate)
+from app.services.non_negotiable_service import (get_user_non_negotiable)
 router = APIRouter()
 
 @router.get("/non-negotiables")
@@ -55,14 +55,7 @@ def update_progress(
     current_user: User = Depends(get_current_user)
 ):
     
-    non_negotiable = (
-    db.query(NonNegotiable)
-    .filter(
-        NonNegotiable.id == non_negotiable_id,
-        NonNegotiable.user_id == current_user.id
-    )
-        .first()
-    )
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
     if non_negotiable is None:
         return {
@@ -126,14 +119,7 @@ def update_progress(
 
 @router.get("/non-negotiables/{non_negotiable_id}/logs")
 def get_logs(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    non_negotiable = (
-        db.query(NonNegotiable)
-        .filter(
-            NonNegotiable.id == non_negotiable_id,
-            NonNegotiable.user_id == current_user.id
-        )
-        .first()
-    )
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
     if non_negotiable is None:
         return {
@@ -156,59 +142,14 @@ def get_logs(non_negotiable_id: int, db: Session = Depends(get_db), current_user
 
 @router.get("/non-negotiables/{non_negotiable_id}/streak")
 def get_streak(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    non_negotiable = (
-        db.query(NonNegotiable)
-        .filter(
-            NonNegotiable.id == non_negotiable_id,
-            NonNegotiable.user_id == current_user.id
-        )
-        .first()
-    )
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
     if non_negotiable is None:
         return {
             "message": "Non-negotiable not found"
         }
 
-    logs = (
-        db.query(NonNegotiableLog)
-        .filter(
-            NonNegotiableLog.non_negotiable_id
-            == non_negotiable_id,
-            NonNegotiableLog.completed == True
-        )
-        .order_by(
-            NonNegotiableLog.date.desc()
-        )
-        .all()
-    )
-
-    if not logs:
-        return {
-            "current_streak": 0
-        }
-
-    today = date.today()
-
-    latest_log_date = logs[0].date
-
-    if latest_log_date == today:
-        expected_date = today
-    elif latest_log_date == today - timedelta(days=1):
-        expected_date = latest_log_date
-    else:
-        return {
-            "current_streak": 0
-        }
-
-    streak = 0
-
-    for log in logs:
-        if log.date == expected_date:
-            streak += 1
-            expected_date -= timedelta(days=1)
-        else:
-            break
+    streak = calculate_current_streak(non_negotiable_id, db)
 
     return {
         "current_streak": streak
@@ -216,14 +157,92 @@ def get_streak(non_negotiable_id: int, db: Session = Depends(get_db), current_us
 
 @router.get("/non-negotiables/{non_negotiable_id}/longest-streak")
 def get_longest_streak(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    non_negotiable = (
-        db.query(NonNegotiable)
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
+
+
+    if non_negotiable is None:
+        return {
+            "message": "Non-negotiable not found"
+        }
+
+    longest_streak = calculate_longest_streak(non_negotiable_id, db)
+
+    return {
+        "longest_streak": longest_streak
+    }
+
+@router.get("/non-negotiables/{non_negotiable_id}/completion-rate")
+def get_completion_rate(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
+
+
+    if non_negotiable is None:
+        return {
+            "message": "Non-negotiable not found"
+        }
+
+    completion_rate = calculate_completion_rate(non_negotiable_id, non_negotiable.created_at.date(), db)
+    return {
+        "completion_rate": completion_rate
+    }
+
+@router.get(
+    "/non-negotiables/{non_negotiable_id}/summary"
+)
+def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
+
+
+    if non_negotiable is None:
+        return {
+            "message": "Non-negotiable not found"
+        }
+
+    today_log = (
+        db.query(NonNegotiableLog)
         .filter(
-            NonNegotiable.id == non_negotiable_id,
-            NonNegotiable.user_id == current_user.id
+            NonNegotiableLog.non_negotiable_id
+            == non_negotiable_id,
+            NonNegotiableLog.date == date.today()
         )
         .first()
     )
+
+    return {
+        "title": non_negotiable.title,
+        "current_streak": calculate_current_streak(
+            non_negotiable_id,
+            db
+        ),
+        "longest_streak": calculate_longest_streak(
+            non_negotiable_id,
+            db
+        ),
+        "completion_rate": calculate_completion_rate(
+            non_negotiable_id,
+            non_negotiable.created_at.date(),
+            db
+        ),
+        "target_value": non_negotiable.target_value,
+        "unit": non_negotiable.unit,
+        "today_completed": (
+            today_log.completed
+            if today_log
+            else False
+        ),
+        "today_progress": (
+            today_log.completed_value
+            if today_log
+            else None
+        )
+    }
+
+@router.get(
+    "/non-negotiables/{non_negotiable_id}/heatmap"
+)
+def get_heatmap(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
+
 
     if non_negotiable is None:
         return {
@@ -234,8 +253,7 @@ def get_longest_streak(non_negotiable_id: int, db: Session = Depends(get_db), cu
         db.query(NonNegotiableLog)
         .filter(
             NonNegotiableLog.non_negotiable_id
-            == non_negotiable_id,
-            NonNegotiableLog.completed == True
+            == non_negotiable_id
         )
         .order_by(
             NonNegotiableLog.date.asc()
@@ -243,70 +261,85 @@ def get_longest_streak(non_negotiable_id: int, db: Session = Depends(get_db), cu
         .all()
     )
 
-    if not logs:
-        return {
-            "longest_streak": 0
-        }
+    heatmap_data = []
 
-    current_streak = 1
-    longest_streak = 1
-
-    for i in range(1, len(logs)):
-
-        previous_date = logs[i - 1].date
-        current_date = logs[i].date
-
-        if current_date == previous_date + timedelta(days=1):
-
-            current_streak += 1
-
-        else:
-
-            current_streak = 1
-
-        longest_streak = max(
-            longest_streak,
-            current_streak
+    for log in logs:
+        heatmap_data.append(
+            {
+                "date": log.date,
+                "completed": log.completed
+            }
         )
 
-    return {
-        "longest_streak": longest_streak
-    }
+    return heatmap_data
 
-@router.get("/non-negotiables/{non_negotiable_id}/completion-rate")
-def get_completion_rate(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    non_negotiable = (
+@router.get("/dashboard")
+def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user )):
+    non_negotiables = (
         db.query(NonNegotiable)
         .filter(
-            NonNegotiable.id == non_negotiable_id,
             NonNegotiable.user_id == current_user.id
         )
-        .first()
+        .all()
     )
 
-    if non_negotiable is None:
-        return {
-            "message": "Non-negotiable not found"
-        }
+    dashboard_data = []
 
-    completed_days = (
-        db.query(NonNegotiableLog)
-        .filter(
-            NonNegotiableLog.non_negotiable_id
-            == non_negotiable_id,
-            NonNegotiableLog.completed == True
+    for non_negotiable in non_negotiables:
+
+        today_log = (
+            db.query(NonNegotiableLog)
+            .filter(
+                NonNegotiableLog.non_negotiable_id
+                == non_negotiable.id,
+                NonNegotiableLog.date == date.today()
+            )
+            .first()
         )
-        .count()
-    )
 
-    created_date = non_negotiable.created_at.date()
+        dashboard_data.append(
+            {
+                "title": non_negotiable.title,
 
-    today = date.today()
+                "current_streak":
+                calculate_current_streak(
+                    non_negotiable.id,
+                    db
+                ),
 
-    total_days = ((today - created_date).days) + 1
+                "longest_streak":
+                calculate_longest_streak(
+                    non_negotiable.id,
+                    db
+                ),
 
-    completion_rate = (completed_days / total_days) * 100
+                "completion_rate":
+                calculate_completion_rate(
+                    non_negotiable.id,
+                    non_negotiable.created_at.date(),
+                    db
+                ),
 
-    return {
-        "completion_rate": round(completion_rate, 2)
-    }
+                "today_completed":
+                (
+                    today_log.completed
+                    if today_log
+                    else False
+                ),
+
+                "today_progress":
+                (
+                    today_log.completed_value
+                    if today_log
+                    else None
+                ),
+
+                "target_value":
+                non_negotiable.target_value,
+
+                "unit":
+                non_negotiable.unit
+            }
+        )
+
+    return dashboard_data
