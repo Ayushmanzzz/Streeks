@@ -4,9 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.non_negotiable_model import NonNegotiable
 from app.models.task_model import Task
 
-from app.models.non_negotiable_log_model import (
-    NonNegotiableLog
-)
+from app.models.non_negotiable_log_model import NonNegotiableLog
 
 def calculate_current_streak(non_negotiable_id, db:Session)-> int:
     logs = (
@@ -179,3 +177,59 @@ def calculate_daily_win_streak(user_id: int, db: Session) -> int:
             break
 
     return streak
+
+def calculate_weekly_win_rate(user_id: int, db: Session) -> float:
+
+    today = date.today()
+
+    wins = 0
+
+    for i in range(7):
+
+        target_date = (
+            today - timedelta(days=i)
+        )
+
+        if calculate_daily_win(
+            user_id,
+            target_date,
+            db
+        ):
+            wins += 1
+
+    return round((wins / 7) * 100, 2)
+
+def tasks_completed_this_week(user_id: int, db: Session) -> int:
+
+    week_start = (
+        date.today() - timedelta(days=6)
+    )
+
+    return (
+        db.query(Task)
+        .filter(
+            Task.user_id == user_id,
+            Task.completed_at >= week_start
+        )
+        .count()
+    )
+
+def non_negotiables_completed_this_week(user_id: int, db: Session) -> int:
+
+    week_start = (date.today() - timedelta(days=6))
+
+    return (
+        db.query(NonNegotiableLog)
+        .join(
+            NonNegotiable,
+            NonNegotiable.id
+            ==
+            NonNegotiableLog.non_negotiable_id
+        )
+        .filter(
+            NonNegotiable.user_id == user_id,
+            NonNegotiableLog.completed == True,
+            NonNegotiableLog.date >= week_start
+        )
+        .count()
+    )

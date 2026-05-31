@@ -13,9 +13,9 @@ from app.services.auth_service import (get_current_user)
 
 from app.models.non_negotiable_log_model import (NonNegotiableLog)
 from app.schemas.non_negotiable_log_schema import (NonNegotiableLogCreate)
-from app.services.analytics_service import (calculate_current_streak, calculate_longest_streak, calculate_completion_rate, calculate_daily_win, calculate_daily_win_streak)
+from app.services.analytics_service import (calculate_current_streak, calculate_longest_streak, calculate_completion_rate, calculate_daily_win, calculate_daily_win_streak,calculate_weekly_win_rate, tasks_completed_this_week, non_negotiables_completed_this_week)
 from app.services.non_negotiable_service import (get_user_non_negotiable)
-from app.schemas.analytics_schema import (DailyWinResponse,DailyWinStreakResponse)
+from app.schemas.analytics_schema import (DailyWinResponse,DailyWinStreakResponse, WeeklySummaryResponse)
 
 router = APIRouter()
 
@@ -24,7 +24,8 @@ def get_non_negotiables(db: Session = Depends(get_db), current_user: User = Depe
     return (
         db.query(NonNegotiable)
         .filter(
-            NonNegotiable.user_id == current_user.id
+            NonNegotiable.user_id == current_user.id,
+            NonNegotiable.is_active == True
         )
         .all()
     )
@@ -387,4 +388,100 @@ def get_daily_win_streak(db: Session = Depends(get_db), current_user: User = Dep
             current_user.id,
             db
         )
+    }
+
+@router.get("/weekly-summary", response_model=WeeklySummaryResponse)
+def get_weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return {
+        "daily_win_streak":
+        calculate_daily_win_streak(
+            current_user.id,
+            db
+        ),
+
+        "weekly_win_rate":
+        calculate_weekly_win_rate(
+            current_user.id,
+            db
+        ),
+
+        "tasks_completed_this_week":
+        tasks_completed_this_week(
+            current_user.id,
+            db
+        ),
+
+        "non_negotiables_completed_this_week":
+        non_negotiables_completed_this_week(
+            current_user.id,
+            db
+        )
+    }
+
+@router.patch("/non-negotiables/{non_negotiable_id}/archive")
+def archive_non_negotiable(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    non_negotiable = (
+        db.query(NonNegotiable)
+        .filter(
+            NonNegotiable.id == non_negotiable_id,
+            NonNegotiable.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if non_negotiable is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Non-negotiable not found"
+        )
+
+    non_negotiable.is_active = False
+
+    db.commit()
+
+    db.refresh(non_negotiable)
+
+    return {
+        "message": "Non-negotiable archived"
+    }
+
+@router.get("/non-negotiables/archived")
+def get_archived_non_negotiables(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return (
+        db.query(NonNegotiable)
+        .filter(
+            NonNegotiable.user_id == current_user.id,
+            NonNegotiable.is_active == False
+        )
+        .all()
+    )
+
+@router.patch("/non-negotiables/{non_negotiable_id}/restore")
+def restore_non_negotiable(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    non_negotiable = (
+        db.query(NonNegotiable)
+        .filter(
+            NonNegotiable.id == non_negotiable_id,
+            NonNegotiable.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if non_negotiable is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Non-negotiable not found"
+        )
+
+    non_negotiable.is_active = True
+
+    db.commit()
+
+    db.refresh(non_negotiable)
+
+    return {
+        "message": "Non-negotiable restored"
     }
