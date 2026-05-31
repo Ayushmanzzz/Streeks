@@ -1,6 +1,9 @@
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
+from app.models.non_negotiable_model import NonNegotiable
+from app.models.task_model import Task
+
 from app.models.non_negotiable_log_model import (
     NonNegotiableLog
 )
@@ -110,3 +113,69 @@ def calculate_completion_rate(non_negotiable_id: int, created_date, db:Session) 
     ) * 100
 
     return round(completion_rate, 2)
+
+def calculate_daily_win(user_id: int, target_date: date, db: Session) -> bool:
+
+    today = target_date
+
+    non_negotiables = (
+        db.query(NonNegotiable)
+        .filter(
+            NonNegotiable.user_id == user_id,
+            NonNegotiable.is_active == True
+        )
+        .all()
+    )
+
+    for non_negotiable in non_negotiables:
+
+        today_log = (
+            db.query(NonNegotiableLog)
+            .filter(
+                NonNegotiableLog.non_negotiable_id
+                == non_negotiable.id,
+                NonNegotiableLog.date == today,
+                NonNegotiableLog.completed == True
+            )
+            .first()
+        )
+
+        if today_log is None:
+            return False
+
+    due_tasks = (
+        db.query(Task)
+        .filter(
+            Task.user_id == user_id,
+            Task.due_date == today
+        )
+        .all()
+    )
+
+    for task in due_tasks:
+
+        if not task.completed:
+            return False
+
+    return True
+
+def calculate_daily_win_streak(user_id: int, db: Session) -> int:
+
+    streak = 0
+
+    current_date = date.today()
+
+    while True:
+
+        if calculate_daily_win(
+            user_id,
+            current_date,
+            db
+        ):
+            streak += 1
+            current_date -= timedelta(days=1)
+
+        else:
+            break
+
+    return streak

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
 
 from app.database import get_db
 from app.models.non_negotiable_model import NonNegotiable
 from app.models.user_model import User
+from app.models.task_model import Task
 
 from app.schemas.non_negotiable_schema import (NonNegotiableCreate)
 from app.services.auth_service import (get_current_user)
@@ -12,8 +13,10 @@ from app.services.auth_service import (get_current_user)
 
 from app.models.non_negotiable_log_model import (NonNegotiableLog)
 from app.schemas.non_negotiable_log_schema import (NonNegotiableLogCreate)
-from app.services.analytics_service import (calculate_current_streak, calculate_longest_streak, calculate_completion_rate)
+from app.services.analytics_service import (calculate_current_streak, calculate_longest_streak, calculate_completion_rate, calculate_daily_win, calculate_daily_win_streak)
 from app.services.non_negotiable_service import (get_user_non_negotiable)
+from app.schemas.analytics_schema import (DailyWinResponse,DailyWinStreakResponse)
+
 router = APIRouter()
 
 @router.get("/non-negotiables")
@@ -57,10 +60,10 @@ def update_progress(
     
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
-    if non_negotiable is None:
-        return {
-            "message": "Non-negotiable not found"
-        }
+    raise HTTPException(
+        status_code=404,
+        detail="Non-negotiable not found"
+    )
 
     today = date.today()
 
@@ -192,11 +195,10 @@ def get_completion_rate(non_negotiable_id: int, db: Session = Depends(get_db), c
 def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
-
-    if non_negotiable is None:
-        return {
-            "message": "Non-negotiable not found"
-        }
+    raise HTTPException(
+        status_code=404,
+        detail="Non-negotiable not found"
+    )
 
     today_log = (
         db.query(NonNegotiableLog)
@@ -237,9 +239,7 @@ def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_u
         )
     }
 
-@router.get(
-    "/non-negotiables/{non_negotiable_id}/heatmap"
-)
+@router.get("/non-negotiables/{non_negotiable_id}/heatmap")
 def get_heatmap(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
@@ -342,4 +342,49 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
             }
         )
 
-    return dashboard_data
+    tasks = (
+        db.query(Task)
+        .filter(
+            Task.user_id == current_user.id
+        )
+        .all()
+    )
+
+    task_data = []
+
+    for task in tasks:
+        task_data.append(
+            {
+                "title": task.title,
+                "priority": task.priority,
+                "completed": task.completed,
+                "due_date": task.due_date
+            }
+        )
+
+    return {
+        "non_negotiables": dashboard_data,
+        "tasks": task_data
+    }
+
+
+
+@router.get("/daily-win", response_model=DailyWinResponse)
+def get_daily_win(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return {
+        "daily_win": calculate_daily_win(
+            current_user.id,
+            date.today(),
+            db
+        )
+    }
+
+@router.get("/daily-win-streak", response_model=DailyWinStreakResponse)
+def get_daily_win_streak(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return {
+        "daily_win_streak":
+        calculate_daily_win_streak(
+            current_user.id,
+            db
+        )
+    }
