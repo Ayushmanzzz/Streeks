@@ -196,10 +196,11 @@ def get_completion_rate(non_negotiable_id: int, db: Session = Depends(get_db), c
 def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
-    raise HTTPException(
-        status_code=404,
-        detail="Non-negotiable not found"
-    )
+    if non_negotiable is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Non-negotiable not found"
+        )
 
     today_log = (
         db.query(NonNegotiableLog)
