@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type NonNegotiable = {
   title: string;
   current_streak: number;
@@ -37,8 +39,11 @@ export default function NonNegotiables({
 
       <div className="flex gap-6 overflow-x-auto overflow-y-visible pt-2 pb-4 px-1">
         {habits.map((habit) => (
+          <Link
+          href="/non-negotiables"
+          key={habit.title}
+        >
           <div
-            key={habit.title}
             className="
               w-[85vw]
               max-w-[420px]
@@ -134,6 +139,7 @@ export default function NonNegotiables({
               </div>
             </div>
           </div>
+          </Link>
         ))}
       </div>
     </section>

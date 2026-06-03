@@ -371,7 +371,6 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
     }
 
 
-
 @router.get("/daily-win", response_model=DailyWinResponse)
 def get_daily_win(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return {
