@@ -77,11 +77,11 @@ def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depends(get
         )
         .first()
     )
-
-    raise HTTPException(
-        status_code=404,
-        detail="Task not found"
-    )
+    if task is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
 
     update_data = task_update.model_dump(
         exclude_unset=True

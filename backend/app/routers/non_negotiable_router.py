@@ -61,10 +61,11 @@ def update_progress(
     
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 
-    raise HTTPException(
-        status_code=404,
-        detail="Non-negotiable not found"
-    )
+    if non_negotiable is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Non-negotiable not found"
+        )
 
     today = date.today()
 
