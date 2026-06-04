@@ -54,3 +54,31 @@ export async function getStreak(
       `/non-negotiables/${nonNegotiableId}/heatmap`
     );
   }
+
+  export async function archiveNonNegotiable(
+    id: number
+  ) {
+    return apiFetch(
+      `/non-negotiables/${id}/archive`,
+      {
+        method: "PATCH",
+      }
+    );
+  }
+  
+  export async function restoreNonNegotiable(
+    id: number
+  ) {
+    return apiFetch(
+      `/non-negotiables/${id}/restore`,
+      {
+        method: "PATCH",
+      }
+    );
+  }
+  
+  export async function getArchivedNonNegotiables() {
+    return apiFetch(
+      "/non-negotiables/archived"
+    );
+  }

@@ -5,24 +5,28 @@ import { useEffect, useState } from "react";
 import {
   getNonNegotiables,
   createNonNegotiable,
+  archiveNonNegotiable
 } from "@/services/nonNegotiables";
 
 import {
     logProgress,
   } from "@/services/nonNegotiableLogs";
 
-type NonNegotiable = {
-  id: number;
-  title: string;
-  description: string;
-  target_value: number;
-  unit: string;
-  is_active: boolean;
-
-  current_streak?: number;
-  longest_streak?: number;
-  completion_rate?: number;
-};
+  type NonNegotiable = {
+    id: number;
+    title: string;
+    description: string;
+    target_value: number;
+    unit: string;
+    is_active: boolean;
+  
+    current_streak?: number;
+    longest_streak?: number;
+    completion_rate?: number;
+  
+    today_completed?: boolean;
+    today_progress?: number;
+  };
 
 export default function NonNegotiablesPage() {
   const [habits, setHabits] =
@@ -61,6 +65,21 @@ export default function NonNegotiablesPage() {
       setDescription("");
       setTargetValue(1);
       setUnit("");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleArchive(
+    id: number
+  ) {
+    try {
+      await archiveNonNegotiable(id);
+  
+      const updated =
+        await getNonNegotiables();
+  
+      setHabits(updated);
     } catch (error) {
       console.error(error);
     }
@@ -219,6 +238,18 @@ export default function NonNegotiablesPage() {
                 </button>
 
                 <button
+                  onClick={async () => {
+                    try {
+                      await archiveNonNegotiable(habit.id);
+
+                      const updated =
+                        await getNonNegotiables();
+
+                      setHabits(updated);
+                    } catch (error) {
+                      console.error(error);
+                    }
+                  }}
                   className="
                     rounded-xl
                     border
@@ -230,7 +261,7 @@ export default function NonNegotiablesPage() {
                     hover:bg-red-500/10
                   "
                 >
-                  Delete
+                  Archive
                 </button>
 
               </div>
