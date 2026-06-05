@@ -20,8 +20,11 @@ from app.schemas.analytics_schema import (DailyWinResponse,DailyWinStreakRespons
 router = APIRouter()
 
 @router.get("/non-negotiables")
-def get_non_negotiables(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return (
+def get_non_negotiables(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    non_negotiables = (
         db.query(NonNegotiable)
         .filter(
             NonNegotiable.user_id == current_user.id,
@@ -29,6 +32,66 @@ def get_non_negotiables(db: Session = Depends(get_db), current_user: User = Depe
         )
         .all()
     )
+
+    result = []
+
+    for non_negotiable in non_negotiables:
+
+        today_log = (
+            db.query(NonNegotiableLog)
+            .filter(
+                NonNegotiableLog.non_negotiable_id
+                == non_negotiable.id,
+                NonNegotiableLog.date == date.today()
+            )
+            .first()
+        )
+
+        result.append(
+            {
+                "id": non_negotiable.id,
+                "title": non_negotiable.title,
+                "description": non_negotiable.description,
+                "target_value": non_negotiable.target_value,
+                "unit": non_negotiable.unit,
+                "is_active": non_negotiable.is_active,
+
+                "current_streak":
+                calculate_current_streak(
+                    non_negotiable.id,
+                    db
+                ),
+
+                "longest_streak":
+                calculate_longest_streak(
+                    non_negotiable.id,
+                    db
+                ),
+
+                "completion_rate":
+                calculate_completion_rate(
+                    non_negotiable.id,
+                    non_negotiable.created_at.date(),
+                    db
+                ),
+
+                "today_completed":
+                (
+                    today_log.completed
+                    if today_log
+                    else False
+                ),
+
+                "today_progress":
+                (
+                    today_log.completed_value
+                    if today_log
+                    else 0
+                )
+            }
+        )
+
+    return result
 
 @router.post("/non-negotiables")
 def create_non_negotiable(non_negotiable: NonNegotiableCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -89,6 +152,21 @@ def update_progress(
             log.completed_value
             >= non_negotiable.target_value
         )
+
+    print(
+    "TARGET:",
+        non_negotiable.target_value
+    )
+
+    print(
+        "INCOMING:",
+        log.completed_value
+    )
+
+    print(
+        "COMPLETED:",
+        completed
+    )
 
     if existing_log:
         existing_log.completed_value = (
@@ -191,9 +269,7 @@ def get_completion_rate(non_negotiable_id: int, db: Session = Depends(get_db), c
         "completion_rate": completion_rate
     }
 
-@router.get(
-    "/non-negotiables/{non_negotiable_id}/summary"
-)
+@router.get("/non-negotiables/{non_negotiable_id}/summary")
 def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
 

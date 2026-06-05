@@ -23,62 +23,70 @@ export async function createNonNegotiable(
   );
 }
 
-export async function getStreak(
-    nonNegotiableId: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${nonNegotiableId}/streak`
-    );
-  }
-  
-  export async function getLongestStreak(
-    nonNegotiableId: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${nonNegotiableId}/longest-streak`
-    );
-  }
-  
-  export async function getCompletionRate(
-    nonNegotiableId: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${nonNegotiableId}/completion-rate`
-    );
-  }
-  
-  export async function getHeatmap(
-    nonNegotiableId: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${nonNegotiableId}/heatmap`
-    );
-  }
+export async function archiveNonNegotiable(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/archive`,
+    {
+      method: "PATCH",
+    }
+  );
+}
 
-  export async function archiveNonNegotiable(
-    id: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${id}/archive`,
-      {
-        method: "PATCH",
-      }
-    );
-  }
-  
-  export async function restoreNonNegotiable(
-    id: number
-  ) {
-    return apiFetch(
-      `/non-negotiables/${id}/restore`,
-      {
-        method: "PATCH",
-      }
-    );
-  }
-  
-  export async function getArchivedNonNegotiables() {
-    return apiFetch(
-      "/non-negotiables/archived"
-    );
-  }
+export async function restoreNonNegotiable(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/restore`,
+    {
+      method: "PATCH",
+    }
+  );
+}
+
+export async function getArchivedNonNegotiables() {
+  return apiFetch(
+    "/non-negotiables/archived"
+  );
+}
+
+export async function getStreak(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/streak`
+  );
+}
+
+export async function getLongestStreak(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/longest-streak`
+  );
+}
+
+export async function getCompletionRate(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/completion-rate`
+  );
+}
+
+export async function getLogs(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/logs`
+  );
+}
+
+export async function getHeatmap(
+  id: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/heatmap`
+  );
+}

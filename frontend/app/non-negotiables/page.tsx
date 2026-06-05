@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import Link from "next/link";
 import {
   getNonNegotiables,
   createNonNegotiable,
@@ -86,24 +86,31 @@ export default function NonNegotiablesPage() {
   }
 
   async function handleComplete(
-    habitId: number
+    habit: NonNegotiable
   ) {
     try {
-        const result =
-        await logProgress(
-          habitId,
-          1
-        );
-      
+  
       console.log(
-        "LOG CREATED:",
+        "TARGET:",
+        habit.target_value
+      );
+  
+      const result =
+        await logProgress(
+          habit.id,
+          habit.target_value
+        );
+  
+      console.log(
+        "RESULT:",
         result
       );
-
+  
       const updated =
         await getNonNegotiables();
-
+  
       setHabits(updated);
+  
     } catch (error) {
       console.error(error);
     }
@@ -137,6 +144,19 @@ export default function NonNegotiablesPage() {
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white">
       <div className="mx-auto max-w-[1400px] px-10 py-20">
+      <Link
+        href="/"
+        className="
+          inline-flex
+          items-center
+          text-zinc-500
+          transition
+          hover:text-white
+          mb-8
+        "
+      >
+        ← Back to Dashboard
+      </Link>
 
         <div className="mb-12">
           <h1 className="text-5xl font-bold">
@@ -152,9 +172,12 @@ export default function NonNegotiablesPage() {
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-          {habits.map((habit) => (
+        {habits.map((habit) => (
+          <Link
+            href={`/non-negotiables/${habit.id}`}
+            key={habit.id}
+          >
             <div
-              key={habit.id}
               className="
                 rounded-[32px]
                 border
@@ -171,6 +194,58 @@ export default function NonNegotiablesPage() {
               <p className="mt-4 text-zinc-400">
                 {habit.description}
               </p>
+
+              <div className="mt-6 space-y-3">
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">
+                    Current Streak
+                  </p>
+
+                  <p className="mt-1 text-xl font-semibold">
+                    {habit.current_streak ?? 0} Days
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">
+                    Longest Streak
+                  </p>
+
+                  <p className="mt-1 text-xl font-semibold">
+                    {habit.longest_streak ?? 0} Days
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">
+                    Completion Rate
+                  </p>
+
+                  <p className="mt-1 text-xl font-semibold">
+                    {habit.completion_rate ?? 0}%
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">
+                    Today
+                  </p>
+
+                  <p
+                    className={`mt-1 text-lg ${
+                      habit.today_completed
+                        ? "text-[#00E676]"
+                        : "text-zinc-400"
+                    }`}
+                  >
+                    {habit.today_completed
+                      ? "Completed ✓"
+                      : `${habit.today_progress ?? 0}/${habit.target_value}`}
+                  </p>
+                </div>
+
+              </div>
 
               <div className="mt-8">
                 <p className="text-xs uppercase tracking-[0.2em] text-zinc-600">
@@ -205,23 +280,29 @@ export default function NonNegotiablesPage() {
 
               <div className="mt-10 flex gap-3">
 
-                <button
-                  onClick={() =>
-                    handleComplete(
-                      habit.id
-                    )
-                  }
-                  className="
-                    rounded-xl
-                    bg-[#00E676]
-                    px-4
-                    py-3
-                    font-semibold
-                    text-black
-                  "
-                >
-                  Complete Today
-                </button>
+              <button
+                disabled={
+                  habit.today_completed
+                }
+                onClick={() =>
+                  handleComplete(
+                    habit
+                  )
+                }
+                className="
+                  rounded-xl
+                  bg-[#00E676]
+                  px-4
+                  py-3
+                  font-semibold
+                  text-black
+                  disabled:opacity-50
+                "
+              >
+                {habit.today_completed
+                  ? "Completed ✓"
+                  : "Complete Today"}
+              </button>
 
                 <button
                   className="
@@ -238,18 +319,9 @@ export default function NonNegotiablesPage() {
                 </button>
 
                 <button
-                  onClick={async () => {
-                    try {
-                      await archiveNonNegotiable(habit.id);
-
-                      const updated =
-                        await getNonNegotiables();
-
-                      setHabits(updated);
-                    } catch (error) {
-                      console.error(error);
-                    }
-                  }}
+                  onClick={() =>
+                    handleArchive(habit.id)
+                  }
                   className="
                     rounded-xl
                     border
@@ -266,6 +338,7 @@ export default function NonNegotiablesPage() {
 
               </div>
             </div>
+            </Link>
           ))}
 
         </div>
