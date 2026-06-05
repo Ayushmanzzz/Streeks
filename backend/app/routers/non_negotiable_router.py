@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, timedelta
 
 from app.database import get_db
 from app.models.non_negotiable_model import NonNegotiable
@@ -319,9 +319,16 @@ def get_summary(non_negotiable_id: int, db: Session = Depends(get_db), current_u
     }
 
 @router.get("/non-negotiables/{non_negotiable_id}/heatmap")
-def get_heatmap(non_negotiable_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
-
+def get_heatmap(
+    non_negotiable_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    non_negotiable = get_user_non_negotiable(
+        non_negotiable_id,
+        current_user.id,
+        db
+    )
 
     if non_negotiable is None:
         return {
@@ -333,23 +340,34 @@ def get_heatmap(non_negotiable_id: int, db: Session = Depends(get_db), current_u
         .filter(
             NonNegotiableLog.non_negotiable_id
             == non_negotiable_id
-        )
-        .order_by(
-            NonNegotiableLog.date.asc()
-        )
-        .all()
+        ).all()
     )
+
+    log_map = {
+        log.date: log.completed
+        for log in logs
+    }
+
+    today = date.today()
 
     heatmap_data = []
 
-    for log in logs:
-        heatmap_data.append(
-            {
-                "date": log.date,
-                "completed": log.completed
-            }
+    for i in range(27, -1, -1):
+
+        current_day = (
+            today - timedelta(days=i)
         )
 
+        heatmap_data.append(
+            {
+                "date": current_day.isoformat(),
+                "completed": log_map.get(
+                    current_day,
+                    False
+                )
+            }
+        )
+    print("NEW HEATMAP ENDPOINT RUNNING")
     return heatmap_data
 
 @router.get("/dashboard")

@@ -1,8 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+
+  const pathname =
+    usePathname();
+
+  function isActive(
+    path: string
+  ) {
+    return pathname === path;
+  }
+
   return (
     <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2">
+
       <nav
         className="
           flex
@@ -17,8 +31,8 @@ export default function Navbar() {
           shadow-[0_0_40px_rgba(0,0,0,0.35)]
         "
       >
-        <Link
-          href="/"
+
+        <div
           className="
             px-5
             py-3
@@ -28,63 +42,88 @@ export default function Navbar() {
           "
         >
           STREEKS
-        </Link>
+        </div>
 
         <Link
           href="/"
-          className="
+          className={`
             rounded-full
-            bg-[#00E676]/10
             px-5
             py-3
-            text-[#00E676]
-          "
+            transition-all
+            duration-300
+            ${
+              isActive("/")
+                ? "bg-[#00E676]/10 text-[#00E676]"
+                : "text-zinc-400 hover:bg-white/5 hover:text-white"
+            }
+          `}
         >
           Dashboard
         </Link>
 
         <Link
           href="/non-negotiables"
-          className="
+          className={`
             rounded-full
             px-5
             py-3
-            text-zinc-400
-            hover:text-white
-          "
+            transition-all
+            duration-300
+            ${
+              pathname.startsWith(
+                "/non-negotiables"
+              )
+                ? "bg-[#00E676]/10 text-[#00E676]"
+                : "text-zinc-400 hover:bg-white/5 hover:text-white"
+            }
+          `}
         >
           Non-Negotiables
         </Link>
 
         <Link
           href="/tasks"
-          className="
+          className={`
             rounded-full
             px-5
             py-3
-            text-zinc-400
-            hover:text-white
-          "
+            transition-all
+            duration-300
+            ${
+              pathname.startsWith(
+                "/tasks"
+              )
+                ? "bg-[#00E676]/10 text-[#00E676]"
+                : "text-zinc-400 hover:bg-white/5 hover:text-white"
+            }
+          `}
         >
           Tasks
         </Link>
 
         <Link
           href="/analytics"
-          className="
+          className={`
             rounded-full
             px-5
             py-3
-            text-zinc-400
             transition-all
             duration-300
-            hover:bg-white/5
-            hover:text-white
-          "
+            ${
+              pathname.startsWith(
+                "/analytics"
+              )
+                ? "bg-[#00E676]/10 text-[#00E676]"
+                : "text-zinc-400 hover:bg-white/5 hover:text-white"
+            }
+          `}
         >
           Analytics
         </Link>
+
       </nav>
+
     </div>
   );
 }

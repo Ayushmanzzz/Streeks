@@ -189,15 +189,23 @@ export default function NonNegotiableDetailPage({
           Heatmap
         </p>
 
-        <div className="grid grid-cols-10 gap-3">
+        <div
+          className="
+            grid
+            grid-flow-col
+            grid-rows-7
+            gap-2
+            w-fit
+          "
+        >
 
           {heatmap.map((day) => (
             <div
               key={day.date}
               className={`
-                h-6
-                w-6
-                rounded-md
+                h-4
+                w-4
+                rounded-sm
                 ${
                   day.completed
                     ? "bg-[#00E676]"
