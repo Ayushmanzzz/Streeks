@@ -375,7 +375,8 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
     non_negotiables = (
         db.query(NonNegotiable)
         .filter(
-            NonNegotiable.user_id == current_user.id
+            NonNegotiable.user_id == current_user.id,
+            NonNegotiable.is_active == True
         )
         .all()
     )
@@ -394,9 +395,43 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
             .first()
         )
 
+        heatmap_logs = (
+            db.query(NonNegotiableLog)
+            .filter(
+                NonNegotiableLog.non_negotiable_id
+                == non_negotiable.id
+            )
+            .all()
+        )
+
+        log_map = {
+            log.date: log.completed
+            for log in heatmap_logs
+        }
+
+        heatmap = []
+
+        for i in range(27, -1, -1):
+
+            current_day = (
+                date.today()
+                - timedelta(days=i)
+            )
+
+            heatmap.append(
+                log_map.get(
+                    current_day,
+                    False
+                )
+            )
+
         dashboard_data.append(
             {
-                "title": non_negotiable.title,
+                "id":
+                non_negotiable.id,
+
+                "title":
+                non_negotiable.title,
 
                 "current_streak":
                 calculate_current_streak(
@@ -435,7 +470,10 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
                 non_negotiable.target_value,
 
                 "unit":
-                non_negotiable.unit
+                non_negotiable.unit,
+
+                "heatmap":
+                heatmap
             }
         )
 

@@ -34,6 +34,16 @@ export default function Home() {
     useState(true);
 
   useEffect(() => {
+    const token =
+      localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href =
+        "/login";
+
+      return;
+    }
+
     async function load() {
       try {
         const [
@@ -59,26 +69,6 @@ export default function Home() {
         );
 
         setSummary(summaryData);
-
-        console.log(
-          "DASHBOARD:",
-          dashboardData
-        );
-
-        console.log(
-          "DAILY WIN:",
-          dailyWinData
-        );
-
-        console.log(
-          "STREAK:",
-          streakData
-        );
-
-        console.log(
-          "SUMMARY:",
-          summaryData
-        );
       } catch (error) {
         console.error(error);
       } finally {

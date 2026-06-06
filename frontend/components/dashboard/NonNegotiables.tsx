@@ -10,6 +10,7 @@ type NonNegotiable = {
   today_progress: number | null;
   target_value: number;
   unit: string;
+  heatmap: boolean[];
 };
 
 type Props = {
@@ -38,7 +39,7 @@ export default function NonNegotiables({
 
         {habits.map((habit) => (
           <Link
-            href="/non-negotiables"
+            href={`/non-negotiables/${habit.id}`}
             key={habit.id}
           >
             <div
@@ -47,7 +48,7 @@ export default function NonNegotiables({
                 max-w-[420px]
                 flex-shrink-0
                 box-border
-                h-[420px]
+                h-auto
                 rounded-[32px]
                 border
                 border-white/10
@@ -63,7 +64,7 @@ export default function NonNegotiables({
               "
             >
               <h3 className="text-4xl font-bold tracking-tight">
-                {habit.title}
+                {habit.title || "Untitled"}
               </h3>
 
               <div className="mt-8">
@@ -90,11 +91,7 @@ export default function NonNegotiables({
                 >
                   {habit.today_completed
                     ? "Completed ✓"
-                    : `${
-                        habit.today_progress ?? 0
-                      } / ${
-                        habit.target_value
-                      } ${habit.unit}`}
+                    : `${habit.today_progress ?? 0} / ${habit.target_value} ${habit.unit}`}
                 </p>
               </div>
 
@@ -143,6 +140,39 @@ export default function NonNegotiables({
                     </p>
                   </div>
 
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <p className="mb-4 text-xs uppercase tracking-[0.2em] text-zinc-600">
+                  Last 28 Days
+                </p>
+
+                <div
+                  className="
+                    grid
+                    grid-cols-7
+                    gap-2
+                  "
+                >
+                  {habit.heatmap.map(
+                    (day, index) => (
+                      <div
+                        key={index}
+                        className={`
+                          h-4
+                          w-4
+                          rounded-[2px]
+                          transition-all
+                          ${
+                            day
+                              ? "bg-[#00E676]"
+                              : "bg-[#1A1A1A]"
+                          }
+                        `}
+                      />
+                    )
+                  )}
                 </div>
               </div>
 

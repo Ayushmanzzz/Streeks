@@ -49,6 +49,15 @@ export default function NonNegotiablesPage() {
 
   async function handleCreate() {
     try {
+      if (!title.trim()) {
+        alert("Title is required");
+        return;
+      }
+      if (!unit.trim()) {
+        alert("Unit is required");
+        return;
+      }
+
       await createNonNegotiable({
         title,
         description,
