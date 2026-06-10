@@ -121,8 +121,12 @@ def update_progress(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    
-    non_negotiable = get_user_non_negotiable(non_negotiable_id, current_user.id, db)
+
+    non_negotiable = get_user_non_negotiable(
+        non_negotiable_id,
+        current_user.id,
+        db
+    )
 
     if non_negotiable is None:
         raise HTTPException(
@@ -142,46 +146,33 @@ def update_progress(
         .first()
     )
 
-    completed = False
+    if existing_log:
 
-    if (
-        non_negotiable.target_value is not None
-        and log.completed_value is not None
-    ):
-        completed = (
+        existing_log.completed_value += (
             log.completed_value
+        )
+
+        existing_log.completed = (
+            existing_log.completed_value
             >= non_negotiable.target_value
         )
-
-    print(
-    "TARGET:",
-        non_negotiable.target_value
-    )
-
-    print(
-        "INCOMING:",
-        log.completed_value
-    )
-
-    print(
-        "COMPLETED:",
-        completed
-    )
-
-    if existing_log:
-        existing_log.completed_value = (
-            log.completed_value
-        )
-
-        existing_log.completed = completed
 
         db.commit()
 
         db.refresh(existing_log)
 
         return {
-            "message": "Progress updated"
+            "message": "Progress updated",
+            "completed_value":
+            existing_log.completed_value,
+            "completed":
+            existing_log.completed
         }
+
+    completed = (
+        log.completed_value
+        >= non_negotiable.target_value
+    )
 
     new_log = NonNegotiableLog(
         non_negotiable_id=non_negotiable_id,
@@ -197,7 +188,11 @@ def update_progress(
     db.refresh(new_log)
 
     return {
-        "message": "Log created"
+        "message": "Log created",
+        "completed_value":
+        new_log.completed_value,
+        "completed":
+        new_log.completed
     }
 
 @router.get("/non-negotiables/{non_negotiable_id}/logs")
@@ -501,7 +496,6 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
         "non_negotiables": dashboard_data,
         "tasks": task_data
     }
-
 
 @router.get("/daily-win", response_model=DailyWinResponse)
 def get_daily_win(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

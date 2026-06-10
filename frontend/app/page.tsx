@@ -103,6 +103,12 @@ export default function Home() {
           weeklyRate={
             summary?.weekly_win_rate || 0
           }
+          activeTasks={
+            summary?.active_tasks || 0
+          }
+          overdueTasks={
+            summary?.overdue_tasks || 0
+          }
         />
 
         <NonNegotiables

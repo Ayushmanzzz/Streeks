@@ -107,7 +107,7 @@ export default function NonNegotiablesPage() {
       const result =
         await logProgress(
           habit.id,
-          habit.target_value
+          1
         );
   
       console.log(
@@ -293,11 +293,14 @@ export default function NonNegotiablesPage() {
                 disabled={
                   habit.today_completed
                 }
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
                   handleComplete(
                     habit
-                  )
-                }
+                  );
+                }}
                 className="
                   rounded-xl
                   bg-[#00E676]
@@ -328,9 +331,12 @@ export default function NonNegotiablesPage() {
                 </button>
 
                 <button
-                  onClick={() =>
-                    handleArchive(habit.id)
-                  }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    handleArchive(habit.id);
+                  }}
                   className="
                     rounded-xl
                     border
