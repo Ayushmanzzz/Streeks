@@ -13,3 +13,6 @@ class WeeklySummaryResponse(BaseModel):
     weekly_win_rate: float
     tasks_completed_this_week: int
     non_negotiables_completed_this_week: int
+
+    active_tasks: int
+    overdue_tasks: int

@@ -524,13 +524,30 @@ def get_daily_win_streak(db: Session = Depends(get_db), current_user: User = Dep
     }
 
 @router.get("/weekly-summary", response_model=WeeklySummaryResponse)
-def get_weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_weekly_summary(db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+
+    active_tasks = (
+        db.query(Task)
+        .filter(
+            Task.user_id == current_user.id,
+            Task.completed == False
+        )
+        .count()
+    )
+
+    overdue_tasks = (
+        db.query(Task)
+        .filter(
+            Task.user_id == current_user.id,
+            Task.completed == False,
+            Task.due_date < date.today()
+        )
+        .count()
+    )
+
     return {
         "daily_win_streak":
-        calculate_daily_win_streak(
-            current_user.id,
-            db
-        ),
+        calculate_daily_win_streak(current_user.id, db),
 
         "weekly_win_rate":
         calculate_weekly_win_rate(
@@ -548,7 +565,13 @@ def get_weekly_summary(db: Session = Depends(get_db), current_user: User = Depen
         non_negotiables_completed_this_week(
             current_user.id,
             db
-        )
+        ),
+
+        "active_tasks":
+        active_tasks,
+
+        "overdue_tasks":
+        overdue_tasks
     }
 
 @router.patch("/non-negotiables/{non_negotiable_id}/archive")
