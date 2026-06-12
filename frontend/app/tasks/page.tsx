@@ -53,6 +53,22 @@ export default function TasksPage() {
   }
 
   async function handleCreate() {
+
+    if (!title.trim()) {
+      alert("Title is required");
+      return;
+    }
+    
+    if (!description.trim()) {
+      alert("Description is required");
+      return;
+    }
+  
+    if (!dueDate) {
+      alert("Due date is required");
+      return;
+    }
+
     try {
       await createTask({
         title,

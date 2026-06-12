@@ -114,6 +114,57 @@ def create_non_negotiable(non_negotiable: NonNegotiableCreate, db: Session = Dep
         "id": new_non_negotiable.id
     }
 
+@router.patch("/non-negotiables/{id}")
+def update_non_negotiable(
+    id: int,
+    payload: NonNegotiableCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    non_negotiable = (
+        db.query(NonNegotiable)
+        .filter(
+            NonNegotiable.id == id,
+            NonNegotiable.user_id
+            == current_user.id
+        )
+        .first()
+    )
+
+    if non_negotiable is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Non-negotiable not found"
+        )
+
+    non_negotiable.title = (
+        payload.title
+    )
+
+    non_negotiable.description = (
+        payload.description
+    )
+
+    non_negotiable.target_value = (
+        payload.target_value
+    )
+
+    non_negotiable.unit = (
+        payload.unit
+    )
+
+    db.commit()
+
+    db.refresh(
+        non_negotiable
+    )
+
+    return {
+        "message":
+        "Updated successfully"
+    }
+
 @router.post("/non-negotiables/{non_negotiable_id}/log")
 def update_progress(
     non_negotiable_id: int,

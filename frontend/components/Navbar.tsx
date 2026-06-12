@@ -8,10 +8,27 @@ export default function Navbar() {
   const pathname =
     usePathname();
 
+    if (
+      pathname === "/login" ||
+      pathname === "/register"
+    ) {
+      return null;
+    }
+
   function isActive(
     path: string
   ) {
     return pathname === path;
+  }
+
+  function handleLogout() {
+
+    localStorage.removeItem(
+      "token"
+    );
+
+    window.location.href =
+      "/login";
   }
 
   return (
@@ -121,6 +138,21 @@ export default function Navbar() {
         >
           Analytics
         </Link>
+
+        <button
+          onClick={handleLogout}
+          className="
+            rounded-full
+            px-5
+            py-3
+            text-red-400
+            transition-all
+            duration-300
+            hover:bg-red-500/10
+          "
+        >
+          Logout
+        </button>
 
       </nav>
 

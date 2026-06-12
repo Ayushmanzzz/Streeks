@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import Navbar from "@/components/Navbar";
+
 import Link from "next/link";
 import {
   getNonNegotiables,
   createNonNegotiable,
-  archiveNonNegotiable
+  archiveNonNegotiable,
+  updateNonNegotiable
 } from "@/services/nonNegotiables";
 
 import {
@@ -47,37 +51,68 @@ export default function NonNegotiablesPage() {
   const [unit, setUnit] =
     useState("");
 
-  async function handleCreate() {
-    try {
-      if (!title.trim()) {
-        alert("Title is required");
-        return;
+    const [editingHabit, setEditingHabit] =
+    useState<NonNegotiable | null>(null);
+
+    async function handleCreate() {
+      try {
+        if (!title.trim()) {
+          alert("Title is required");
+          return;
+        }
+    
+        if (!unit.trim()) {
+          alert("Unit is required");
+          return;
+        }
+    
+        if (editingHabit) {
+    
+          await updateNonNegotiable(
+            editingHabit.id,
+            {
+              title,
+              description,
+              target_value:
+                targetValue,
+              unit,
+            }
+          );
+    
+        } else {
+    
+          await createNonNegotiable({
+            title,
+            description,
+            target_value:
+              targetValue,
+            unit,
+          });
+    
+        }
+    
+        const updated =
+          await getNonNegotiables();
+    
+        setHabits(updated);
+    
+        setEditingHabit(
+          null
+        );
+    
+        setTitle("");
+    
+        setDescription("");
+    
+        setTargetValue(1);
+    
+        setUnit("");
+    
+      } catch (error) {
+        console.error(error);
       }
-      if (!unit.trim()) {
-        alert("Unit is required");
-        return;
-      }
-
-      await createNonNegotiable({
-        title,
-        description,
-        target_value: targetValue,
-        unit,
-      });
-
-      const updated =
-        await getNonNegotiables();
-
-      setHabits(updated);
-
-      setTitle("");
-      setDescription("");
-      setTargetValue(1);
-      setUnit("");
-    } catch (error) {
-      console.error(error);
     }
-  }
+
 
   async function handleArchive(
     id: number
@@ -152,6 +187,9 @@ export default function NonNegotiablesPage() {
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white">
+      
+      <Navbar />
+      
       <div className="mx-auto max-w-[1400px] px-10 py-20">
       <Link
         href="/"
@@ -316,19 +354,43 @@ export default function NonNegotiablesPage() {
                   : "Complete Today"}
               </button>
 
-                <button
-                  className="
-                    rounded-xl
-                    border
-                    border-white/10
-                    px-4
-                    py-3
-                    transition
-                    hover:border-white/20
-                  "
-                >
-                  Edit
-                </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  setEditingHabit(
+                    habit
+                  );
+
+                  setTitle(
+                    habit.title
+                  );
+
+                  setDescription(
+                    habit.description
+                  );
+
+                  setTargetValue(
+                    habit.target_value
+                  );
+
+                  setUnit(
+                    habit.unit
+                  );
+                }}
+                className="
+                  rounded-xl
+                  border
+                  border-white/10
+                  px-4
+                  py-3
+                  transition
+                  hover:border-white/20
+                "
+              >
+                Edit
+              </button>
 
                 <button
                   onClick={(e) => {
@@ -455,7 +517,11 @@ export default function NonNegotiablesPage() {
                 text-black
               "
             >
-              Create System
+              {
+                editingHabit
+                  ? "Update System"
+                  : "Create System"
+              }
             </button>
 
           </div>

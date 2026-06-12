@@ -1,12 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import Link from "next/link";
 
 import { login } from "@/services/auth";
 
 export default function LoginPage() {
-  const router = useRouter();
+
+  useEffect(() => {
+
+    const token =
+      localStorage.getItem("token");
+
+    if (token) {
+      window.location.href = "/";
+    }
+
+  }, []);
 
   const [email, setEmail] =
     useState("");
@@ -29,20 +43,30 @@ export default function LoginPage() {
       setLoading(true);
       setError("");
 
-      await login(email, password);
+      await login(
+        email,
+        password
+      );
 
-      window.location.href = "/";
+      window.location.href =
+        "/";
+
     } catch {
+
       setError(
         "Invalid email or password"
       );
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0A0A0A] text-white">
+
       <form
         onSubmit={handleLogin}
         className="
@@ -56,6 +80,7 @@ export default function LoginPage() {
           backdrop-blur-xl
         "
       >
+
         <h1 className="mb-8 text-4xl font-bold">
           STREEKS
         </h1>
@@ -66,7 +91,9 @@ export default function LoginPage() {
             placeholder="Email"
             value={email}
             onChange={(e) =>
-              setEmail(e.target.value)
+              setEmail(
+                e.target.value
+              )
             }
             className="
               w-full
@@ -86,7 +113,9 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) =>
-              setPassword(e.target.value)
+              setPassword(
+                e.target.value
+              )
             }
             className="
               w-full
@@ -122,7 +151,22 @@ export default function LoginPage() {
             ? "Signing In..."
             : "Sign In"}
         </button>
+
+        <div className="mt-6 text-center text-zinc-400">
+          Don't have an account?{" "}
+          <Link
+            href="/signup"
+            className="
+              text-[#00E676]
+              hover:underline
+            "
+          >
+            Create one
+          </Link>
+        </div>
+
       </form>
+
     </main>
   );
 }

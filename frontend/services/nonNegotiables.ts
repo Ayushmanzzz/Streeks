@@ -90,3 +90,21 @@ export async function getHeatmap(
     `/non-negotiables/${id}/heatmap`
   );
 }
+
+export async function updateNonNegotiable(
+  id: number,
+  data: {
+    title: string;
+    description: string;
+    target_value: number;
+    unit: string;
+  }
+) {
+  return apiFetch(
+    `/non-negotiables/${id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
