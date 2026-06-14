@@ -8,7 +8,7 @@ import Hero from "@/components/dashboard/Hero";
 import Metrics from "@/components/dashboard/Metrics";
 import NonNegotiables from "@/components/dashboard/NonNegotiables";
 import Tasks from "@/components/dashboard/Tasks";
-import Momentum from "@/components/dashboard/Momentum";
+// import Momentum from "@/components/dashboard/Momentum";
 
 import {
   getDashboard,
@@ -32,6 +32,9 @@ export default function Home() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     const token =
@@ -70,7 +73,14 @@ export default function Home() {
 
         setSummary(summaryData);
       } catch (error) {
+
         console.error(error);
+      
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load dashboard"
+        );
       } finally {
         setLoading(false);
       }
@@ -83,6 +93,14 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
         Loading...
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#0A0A0A] text-red-400 flex items-center justify-center">
+        {error}
       </main>
     );
   }
@@ -123,12 +141,12 @@ export default function Home() {
           }
         />
 
-        <Momentum
+        {/* <Momentum
           streak={streak}
           weeklyRate={
             summary?.weekly_win_rate || 0
           }
-        />
+        /> */}
       </div>
     </main>
   );

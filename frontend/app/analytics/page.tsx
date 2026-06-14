@@ -27,6 +27,9 @@ export default function AnalyticsPage() {
   const [loading, setLoading] =
     useState(true);
 
+  const [error, setError] =
+    useState("");
+
   useEffect(() => {
 
     async function load() {
@@ -55,7 +58,20 @@ export default function AnalyticsPage() {
         );
 
       } catch (error) {
+
         console.error(error);
+      
+        setDailyWin(false);
+
+        setDailyWinStreak(0);
+
+        setWeeklySummary({
+          weekly_win_rate: 0,
+          tasks_completed_this_week: 0,
+          non_negotiables_completed_this_week: 0,
+          active_tasks: 0,
+          overdue_tasks: 0,
+        });
       } finally {
         setLoading(false);
       }
@@ -70,6 +86,14 @@ export default function AnalyticsPage() {
     return (
       <main className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
         Loading...
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#0A0A0A] text-red-400 flex items-center justify-center">
+        {error}
       </main>
     );
   }

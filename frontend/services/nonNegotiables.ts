@@ -108,3 +108,18 @@ export async function updateNonNegotiable(
     }
   );
 }
+
+export async function logProgress(
+  id: number,
+  completed_value: number
+) {
+  return apiFetch(
+    `/non-negotiables/${id}/log`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        completed_value,
+      }),
+    }
+  );
+}

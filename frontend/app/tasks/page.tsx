@@ -40,6 +40,12 @@ export default function TasksPage() {
   const [dueDate, setDueDate] =
     useState("");
 
+  const [deleteTarget, setDeleteTarget] =
+    useState<Task | null>(null);
+  
+  const [showDeleteModal, setShowDeleteModal] =
+    useState(false);
+
   async function loadTasks() {
     const data = await getTasks();
 
@@ -92,11 +98,17 @@ export default function TasksPage() {
     taskId: number
   ) {
     try {
-      await deleteTask(taskId);
-
+  
+      await deleteTask(
+        taskId
+      );
+  
       await loadTasks();
+  
     } catch (error) {
+  
       console.error(error);
+  
     }
   }
 
@@ -296,9 +308,16 @@ export default function TasksPage() {
                   </button>
 
                   <button
-                    onClick={() =>
-                      handleDelete(task.id)
-                    }
+                    onClick={() => {
+                      setDeleteTarget(
+                        task
+                      );
+                    
+                      setShowDeleteModal(
+                        true
+                      );
+                    
+                    }}
                     className="
                       rounded-xl
                       border
@@ -479,6 +498,109 @@ export default function TasksPage() {
         </div>
 
       </div>
+
+      {showDeleteModal && deleteTarget && (
+
+      <div
+        className="
+          fixed
+          inset-0
+          z-[100]
+          flex
+          items-center
+          justify-center
+          bg-black/70
+          backdrop-blur-sm
+        "
+      >
+
+        <div
+          className="
+            w-full
+            max-w-md
+            rounded-[32px]
+            border
+            border-white/10
+            bg-[#111]
+            p-8
+          "
+        >
+
+          <h2 className="text-2xl font-bold">
+            Delete Task?
+          </h2>
+
+          <p className="mt-4 text-zinc-400">
+            Are you sure you want to delete
+            {" "}
+            <span className="text-white">
+              {deleteTarget.title}
+            </span>
+            ?
+          </p>
+
+          <div className="mt-8 flex gap-3">
+
+            <button
+              onClick={() => {
+
+                setShowDeleteModal(
+                  false
+                );
+
+                setDeleteTarget(
+                  null
+                );
+
+              }}
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-white/10
+                px-4
+                py-3
+              "
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+
+                await handleDelete(
+                  deleteTarget.id
+                );
+
+                setShowDeleteModal(
+                  false
+                );
+
+                setDeleteTarget(
+                  null
+                );
+
+              }}
+              className="
+                flex-1
+                rounded-xl
+                bg-red-500
+                px-4
+                py-3
+                font-semibold
+                text-white
+              "
+            >
+              Delete
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      )}
 
     </main>
   );

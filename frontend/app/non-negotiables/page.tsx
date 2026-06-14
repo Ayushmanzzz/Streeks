@@ -51,67 +51,73 @@ export default function NonNegotiablesPage() {
   const [unit, setUnit] =
     useState("");
 
-    const [editingHabit, setEditingHabit] =
+  const [editingHabit, setEditingHabit] =
+  useState<NonNegotiable | null>(null);
+
+  const [archiveTarget, setArchiveTarget] =
     useState<NonNegotiable | null>(null);
 
-    async function handleCreate() {
-      try {
-        if (!title.trim()) {
-          alert("Title is required");
-          return;
-        }
-    
-        if (!unit.trim()) {
-          alert("Unit is required");
-          return;
-        }
-    
-        if (editingHabit) {
-    
-          await updateNonNegotiable(
-            editingHabit.id,
-            {
-              title,
-              description,
-              target_value:
-                targetValue,
-              unit,
-            }
-          );
-    
-        } else {
-    
-          await createNonNegotiable({
+  const [showArchiveModal, setShowArchiveModal] =
+    useState(false);
+
+  async function handleCreate() {
+    try {
+      if (!title.trim()) {
+        alert("Title is required");
+        return;
+      }
+  
+      if (!unit.trim()) {
+        alert("Unit is required");
+        return;
+      }
+  
+      if (editingHabit) {
+  
+        await updateNonNegotiable(
+          editingHabit.id,
+          {
             title,
             description,
             target_value:
               targetValue,
             unit,
-          });
-    
-        }
-    
-        const updated =
-          await getNonNegotiables();
-    
-        setHabits(updated);
-    
-        setEditingHabit(
-          null
+          }
         );
-    
-        setTitle("");
-    
-        setDescription("");
-    
-        setTargetValue(1);
-    
-        setUnit("");
-    
-      } catch (error) {
-        console.error(error);
+  
+      } else {
+  
+        await createNonNegotiable({
+          title,
+          description,
+          target_value:
+            targetValue,
+          unit,
+        });
+  
       }
+  
+      const updated =
+        await getNonNegotiables();
+  
+      setHabits(updated);
+  
+      setEditingHabit(
+        null
+      );
+  
+      setTitle("");
+  
+      setDescription("");
+  
+      setTargetValue(1);
+  
+      setUnit("");
+  
+    } catch (error) {
+      console.error(error);
     }
+  }
 
 
   async function handleArchive(
@@ -397,7 +403,8 @@ export default function NonNegotiablesPage() {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    handleArchive(habit.id);
+                    setArchiveTarget(habit);
+                    setShowArchiveModal(true);
                   }}
                   className="
                     rounded-xl
@@ -528,6 +535,99 @@ export default function NonNegotiablesPage() {
         </div>
 
       </div>
+
+      {showArchiveModal && archiveTarget && (
+
+      <div
+        className="
+          fixed
+          inset-0
+          z-[100]
+          flex
+          items-center
+          justify-center
+          bg-black/70
+          backdrop-blur-sm
+        "
+      >
+
+        <div
+          className="
+            w-full
+            max-w-md
+            rounded-[32px]
+            border
+            border-white/10
+            bg-[#111]
+            p-8
+          "
+        >
+
+          <h2 className="text-2xl font-bold">
+            Archive System?
+          </h2>
+
+          <p className="mt-4 text-zinc-400">
+            Are you sure you want to archive
+            {" "}
+            <span className="text-white">
+              {archiveTarget.title}
+            </span>
+            ?
+          </p>
+
+          <div className="mt-8 flex gap-3">
+
+            <button
+              onClick={() => {
+                setShowArchiveModal(false);
+                setArchiveTarget(null);
+              }}
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-white/10
+                px-4
+                py-3
+              "
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={async () => {
+
+                await handleArchive(
+                  archiveTarget.id
+                );
+
+                setShowArchiveModal(false);
+
+                setArchiveTarget(null);
+
+              }}
+              className="
+                flex-1
+                rounded-xl
+                bg-red-500
+                px-4
+                py-3
+                font-semibold
+                text-white
+              "
+            >
+              Archive
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      )}
+
     </main>
   );
 }

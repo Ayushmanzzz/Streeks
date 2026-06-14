@@ -125,6 +125,9 @@ def calculate_daily_win(user_id: int, target_date: date, db: Session) -> bool:
         .all()
     )
 
+    if len(non_negotiables) == 0:
+        return False
+
     for non_negotiable in non_negotiables:
 
         today_log = (

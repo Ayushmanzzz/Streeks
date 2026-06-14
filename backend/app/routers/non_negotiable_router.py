@@ -509,7 +509,7 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
                 (
                     today_log.completed_value
                     if today_log
-                    else None
+                    else 0
                 ),
 
                 "target_value":

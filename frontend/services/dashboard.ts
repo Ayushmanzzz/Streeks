@@ -19,3 +19,9 @@ export async function getWeeklySummary() {
     "/weekly-summary"
   );
 }
+
+export async function getMomentum() {
+  return apiFetch(
+    "/momentum"
+  );
+}
