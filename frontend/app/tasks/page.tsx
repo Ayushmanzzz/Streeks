@@ -207,17 +207,23 @@ export default function TasksPage() {
                 );
 
             return (
-
-              <div
+              
+              <Link
+                href={`/tasks/${task.id}`}
                 key={task.id}
-                className="
-                  rounded-[32px]
-                  border
-                  border-white/10
-                  bg-white/[0.03]
-                  p-8
-                "
               >
+                <div
+                  className="
+                    rounded-[32px]
+                    border
+                    border-white/10
+                    bg-white/[0.03]
+                    p-8
+                    transition-all
+                    hover:border-[#00E676]/30
+                    hover:scale-[1.01]
+                  "
+                >
 
                 <div className="flex items-center justify-between">
 
@@ -290,9 +296,12 @@ export default function TasksPage() {
                 <div className="mt-8 flex gap-3">
 
                   <button
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
                       handleToggle(task)
-                    }
+                    }}
                     className="
                       rounded-xl
                       bg-[#00E676]
@@ -308,15 +317,12 @@ export default function TasksPage() {
                   </button>
 
                   <button
-                    onClick={() => {
-                      setDeleteTarget(
-                        task
-                      );
-                    
-                      setShowDeleteModal(
-                        true
-                      );
-                    
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+
+                      setDeleteTarget(task);
+                      setShowDeleteModal(true);
                     }}
                     className="
                       rounded-xl
@@ -333,6 +339,7 @@ export default function TasksPage() {
                 </div>
 
               </div>
+            </Link>
 
             );
           })}
@@ -349,6 +356,10 @@ export default function TasksPage() {
 
               {completedTasks.map((task) => (
 
+              <Link
+              href={`/tasks/${task.id}`}
+              key={task.id}
+              >
                 <div
                   key={task.id}
                   className="
@@ -374,9 +385,12 @@ export default function TasksPage() {
                   </p>
 
                   <button
-                    onClick={() =>
+                    onClick={(e) =>{
+                      e.preventDefault();
+                      e.stopPropagation();
+
                       handleToggle(task)
-                    }
+                    }}
                     className="
                       mt-6
                       rounded-xl
@@ -390,6 +404,7 @@ export default function TasksPage() {
                   </button>
 
                 </div>
+              </Link>
 
               ))}
 
