@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 
 import Navbar from "@/components/Navbar";
-
 import Link from "next/link";
 
 import {
@@ -36,14 +35,15 @@ export default function AnalyticsPage() {
 
       try {
 
-        const dailyWinData =
-          await getDailyWin();
-
-        const streakData =
-          await getDailyWinStreak();
-
-        const summaryData =
-          await getWeeklySummary();
+        const [
+          dailyWinData,
+          streakData,
+          summaryData,
+        ] = await Promise.all([
+          getDailyWin(),
+          getDailyWinStreak(),
+          getWeeklySummary(),
+        ]);
 
         setDailyWin(
           dailyWinData.daily_win
@@ -60,20 +60,15 @@ export default function AnalyticsPage() {
       } catch (error) {
 
         console.error(error);
-      
-        setDailyWin(false);
 
-        setDailyWinStreak(0);
+        setError(
+          "Failed to load analytics"
+        );
 
-        setWeeklySummary({
-          weekly_win_rate: 0,
-          tasks_completed_this_week: 0,
-          non_negotiables_completed_this_week: 0,
-          active_tasks: 0,
-          overdue_tasks: 0,
-        });
       } finally {
+
         setLoading(false);
+
       }
 
     }
@@ -97,6 +92,18 @@ export default function AnalyticsPage() {
       </main>
     );
   }
+
+  const consistencyScore =
+    Math.round(
+      (
+        (weeklySummary?.weekly_win_rate || 0)
+        +
+        Math.min(
+          dailyWinStreak * 5,
+          100
+        )
+      ) / 2
+    );
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white">
@@ -163,10 +170,7 @@ export default function AnalyticsPage() {
             </p>
 
             <h2 className="mt-3 text-5xl font-bold">
-              {
-                weeklySummary
-                  ?.weekly_win_rate
-              }%
+              {weeklySummary?.weekly_win_rate}%
             </h2>
           </div>
 
@@ -211,7 +215,7 @@ export default function AnalyticsPage() {
 
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
 
           <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
 
@@ -231,6 +235,128 @@ export default function AnalyticsPage() {
                   ?.overdue_tasks
               }
             </h2>
+
+          </div>
+
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
+
+            <p className="text-zinc-500">
+              Consistency Score
+            </p>
+
+            <h2 className="mt-3 text-5xl font-bold text-[#00E676]">
+              {consistencyScore}
+            </h2>
+
+            <p className="mt-3 text-zinc-500">
+              Based on streak and weekly win rate
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="mt-6 rounded-[32px] border border-white/10 bg-white/[0.03] p-8">
+
+          <p className="text-zinc-500 uppercase tracking-[0.2em] text-xs">
+            Performance Summary
+          </p>
+
+          <div className="mt-8 space-y-4">
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Daily Win Status
+              </span>
+
+              <span
+                className={
+                  dailyWin
+                    ? "text-[#00E676]"
+                    : "text-red-400"
+                }
+              >
+                {dailyWin
+                  ? "Winning"
+                  : "At Risk"}
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Weekly Execution
+              </span>
+
+              <span>
+                {
+                  weeklySummary
+                    ?.weekly_win_rate
+                }%
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Current Streak
+              </span>
+
+              <span>
+                {dailyWinStreak}
+                {" "}
+                Days
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Active Workload
+              </span>
+
+              <span>
+                {
+                  weeklySummary
+                    ?.active_tasks
+                }
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Tasks Completed
+              </span>
+
+              <span>
+                {
+                  weeklySummary
+                    ?.tasks_completed_this_week
+                }
+              </span>
+
+            </div>
+
+            <div className="flex items-center justify-between">
+
+              <span className="text-zinc-400">
+                Systems Completed
+              </span>
+
+              <span>
+                {
+                  weeklySummary
+                    ?.non_negotiables_completed_this_week
+                }
+              </span>
+
+            </div>
 
           </div>
 
