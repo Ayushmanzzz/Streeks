@@ -5,8 +5,8 @@ from app.database import get_db
 from app.schemas.user_schema import UserCreate
 from app.models.user_model import User
 from app.utils.security import hash_password
-from app.schemas.user_schema import (UserCreate, UserLogin)
-from app.utils.security import (hash_password, verify_password)
+from app.schemas.user_schema import (UserLogin)
+from app.utils.security import (verify_password)
 from app.utils.token import create_access_token
 from app.services.auth_service import get_current_user
 

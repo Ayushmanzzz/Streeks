@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta, timezone
 from jose import jwt
+from datetime import datetime, timedelta, timezone
 
 SECRET_KEY = "94626fe2ba69ae70d73f58d4e1090985e9cc89773cca3c9b59020169b0aa3ced"
 

@@ -11,7 +11,7 @@ from app.models.user_model import User
 from app.schemas.task_schema import TaskCreate
 
 from app.services.auth_service import (get_current_user)
-from app.schemas.task_schema import (TaskCreate, TaskUpdate)
+from app.schemas.task_schema import (TaskUpdate)
 
 router = APIRouter()
 
