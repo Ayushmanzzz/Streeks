@@ -46,6 +46,9 @@ export default function TasksPage() {
   const [showDeleteModal, setShowDeleteModal] =
     useState(false);
 
+  const [filter, setFilter] =
+    useState("ALL");
+
   async function loadTasks() {
     const data = await getTasks();
 
@@ -146,6 +149,34 @@ export default function TasksPage() {
     (task) => task.completed
   );
 
+  const filteredTasks = tasks.filter(
+    (task) => {
+      const overdue =
+        !task.completed &&
+        task.due_date &&
+        new Date(task.due_date) <
+          new Date(
+            new Date()
+              .toISOString()
+              .split("T")[0]
+          );
+  
+      if (filter === "ACTIVE") {
+        return !task.completed;
+      }
+  
+      if (filter === "COMPLETED") {
+        return task.completed;
+      }
+  
+      if (filter === "OVERDUE") {
+        return overdue;
+      }
+  
+      return true;
+    }
+  );
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center">
@@ -191,11 +222,44 @@ export default function TasksPage() {
           {activeTasks.length}{" "}
             Active Tasks
           </p>
+          <div className="mt-6 flex gap-3">
+
+            {[
+              "ALL",
+              "ACTIVE",
+              "COMPLETED",
+              "OVERDUE",
+            ].map((item) => (
+
+              <button
+                key={item}
+                onClick={() =>
+                  setFilter(item)
+                }
+                className={`
+                  rounded-xl
+                  px-4
+                  py-2
+                  text-sm
+                  border
+                  ${
+                    filter === item
+                      ? "border-[#00E676] bg-[#00E676]/10 text-[#00E676]"
+                      : "border-white/10 text-zinc-400"
+                  }
+                `}
+              >
+                {item}
+              </button>
+
+            ))}
+
+          </div>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 
-        {activeTasks.map((task) => {
+        {filteredTasks.map((task) => {
 
             const overdue =
               !task.completed &&
@@ -346,7 +410,7 @@ export default function TasksPage() {
 
         </div>
 
-        {completedTasks.length > 0 && (
+        {filter === "ALL" && completedTasks.length > 0 && (
           <>
             <h2 className="mt-16 mb-6 text-2xl font-bold text-zinc-500">
               Completed Tasks

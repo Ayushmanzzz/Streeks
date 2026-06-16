@@ -9,6 +9,8 @@ import {
   getNonNegotiables,
   createNonNegotiable,
   archiveNonNegotiable,
+  restoreNonNegotiable,
+  getArchivedNonNegotiables,
   updateNonNegotiable
 } from "@/services/nonNegotiables";
 
@@ -34,6 +36,9 @@ import {
 
 export default function NonNegotiablesPage() {
   const [habits, setHabits] =
+    useState<NonNegotiable[]>([]);
+
+  const [archivedHabits, setArchivedHabits] =
     useState<NonNegotiable[]>([]);
 
   const [loading, setLoading] =
@@ -119,19 +124,85 @@ export default function NonNegotiablesPage() {
     }
   }
 
-
   async function handleArchive(
     id: number
   ) {
     try {
-      await archiveNonNegotiable(id);
   
-      const updated =
+      await archiveNonNegotiable(
+        id
+      );
+  
+      const active =
         await getNonNegotiables();
   
-      setHabits(updated);
+      const archived =
+        await getArchivedNonNegotiables();
+  
+      setHabits(active);
+  
+      setArchivedHabits(
+        archived
+      );
+  
     } catch (error) {
+  
       console.error(error);
+  
+    }
+  }
+  
+  async function handleRestore(
+    id: number
+  ) {
+    try {
+  
+      await restoreNonNegotiable(
+        id
+      );
+  
+      const active =
+        await getNonNegotiables();
+  
+      const archived =
+        await getArchivedNonNegotiables();
+  
+      setHabits(active);
+  
+      setArchivedHabits(
+        archived
+      );
+  
+    } catch (error) {
+  
+      console.error(error);
+  
+    }
+  }
+
+  async function load() {
+    try {
+  
+      const active =
+        await getNonNegotiables();
+  
+      const archived =
+        await getArchivedNonNegotiables();
+  
+      setHabits(active);
+  
+      setArchivedHabits(
+        archived
+      );
+  
+    } catch (error) {
+  
+      console.error(error);
+  
+    } finally {
+  
+      setLoading(false);
+  
     }
   }
 
@@ -169,14 +240,27 @@ export default function NonNegotiablesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data =
+    
+        const active =
           await getNonNegotiables();
-
-        setHabits(data);
+    
+        const archived =
+          await getArchivedNonNegotiables();
+    
+        setHabits(active);
+    
+        setArchivedHabits(
+          archived
+        );
+    
       } catch (error) {
+    
         console.error(error);
+    
       } finally {
+    
         setLoading(false);
+    
       }
     }
 
@@ -426,6 +510,67 @@ export default function NonNegotiablesPage() {
           ))}
 
         </div>
+
+        {archivedHabits.length > 0 && (
+
+        <>
+
+          <h2 className="mt-16 mb-8 text-3xl font-bold text-zinc-500">
+            Archived Systems
+          </h2>
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+
+            {archivedHabits.map((habit) => (
+
+              <div
+                key={habit.id}
+                className="
+                  rounded-[32px]
+                  border
+                  border-white/10
+                  bg-white/[0.02]
+                  p-8
+                  opacity-70
+                "
+              >
+
+                <h3 className="text-2xl font-bold">
+                  {habit.title}
+                </h3>
+
+                <p className="mt-3 text-zinc-500">
+                  {habit.description}
+                </p>
+
+                <button
+                  onClick={() =>
+                    handleRestore(
+                      habit.id
+                    )
+                  }
+                  className="
+                    mt-6
+                    rounded-xl
+                    bg-[#00E676]
+                    px-4
+                    py-3
+                    font-semibold
+                    text-black
+                  "
+                >
+                  Restore
+                </button>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        </>
+
+        )}
 
         {/* CREATE FORM */}
 
