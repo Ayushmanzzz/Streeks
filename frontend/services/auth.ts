@@ -4,30 +4,16 @@ export async function login(
   email: string,
   password: string
 ) {
-  const response = await fetch(
-    "http://127.0.0.1:8000/login",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    }
-  );
-
-  const data =
-    await response.json();
+  const data = await apiFetch("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
 
   if (!data.access_token) {
-    throw new Error(
-      "Login failed"
-    );
+    throw new Error("Login failed");
   }
 
   localStorage.setItem(
@@ -43,28 +29,14 @@ export async function signup(
   email: string,
   password: string
 ) {
-  const response = await fetch(
-    "http://127.0.0.1:8000/signup",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-      }),
-    }
-  );
-
-  const data =
-    await response.json();
-
-  return data;
+  return apiFetch("/signup", {
+    method: "POST",
+    body: JSON.stringify({
+      username,
+      email,
+      password,
+    }),
+  });
 }
 
 export async function getMe() {
