@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://127.0.0.1:8000";
 
 export async function apiFetch(
   endpoint: string,
@@ -6,7 +8,6 @@ export async function apiFetch(
 ) {
   const token =
     localStorage.getItem("token");
-    console.log("TOKEN:", token);
 
   const response = await fetch(
     `${API_URL}${endpoint}`,
@@ -17,8 +18,8 @@ export async function apiFetch(
         "Content-Type": "application/json",
 
         Authorization: token
-        ? `Bearer ${token}`
-        : "",
+          ? `Bearer ${token}`
+          : "",
 
         ...(options.headers || {}),
       },
@@ -27,12 +28,15 @@ export async function apiFetch(
 
   if (response.status === 401) {
     localStorage.removeItem("token");
-  
-    window.location.href = "/login";
-  
-    throw new Error("Unauthorized");
+
+    window.location.href =
+      "/login";
+
+    throw new Error(
+      "Unauthorized"
+    );
   }
-  
+
   if (!response.ok) {
     throw new Error(
       `API Error: ${response.status}`
