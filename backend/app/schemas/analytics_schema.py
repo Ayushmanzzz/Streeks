@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class DailyWinResponse(BaseModel):
-    daily_win: bool
+    daily_win: bool | None
 
 
 class DailyWinStreakResponse(BaseModel):

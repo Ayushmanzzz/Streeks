@@ -13,7 +13,7 @@ import {
 
 export default function AnalyticsPage() {
   const [dailyWin, setDailyWin] =
-    useState(false);
+    useState<boolean | null>(null);
 
   const [dailyWinStreak,
     setDailyWinStreak] =
@@ -143,12 +143,16 @@ export default function AnalyticsPage() {
 
             <h2
               className={`mt-3 text-5xl font-bold ${
-                dailyWin
+                dailyWin === null
+                  ? "text-zinc-500"
+                  : dailyWin
                   ? "text-[#00E676]"
                   : "text-red-400"
               }`}
             >
-              {dailyWin
+              {dailyWin === null
+                ? "-"
+                : dailyWin
                 ? "YES"
                 : "NO"}
             </h2>
@@ -272,12 +276,16 @@ export default function AnalyticsPage() {
 
               <span
                 className={
-                  dailyWin
+                  dailyWin === null
+                    ? "text-zinc-500"
+                    : dailyWin
                     ? "text-[#00E676]"
                     : "text-red-400"
                 }
               >
-                {dailyWin
+                {dailyWin === null
+                  ? "-"
+                  : dailyWin
                   ? "Winning"
                   : "At Risk"}
               </span>

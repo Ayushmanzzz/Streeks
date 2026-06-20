@@ -125,8 +125,26 @@ def calculate_daily_win(user_id: int, target_date: date, db: Session) -> bool:
         .all()
     )
 
+    due_tasks = (
+    db.query(Task)
+    .filter(
+        Task.user_id == user_id,
+        Task.due_date == today
+    )
+    .all()
+)
+
     if len(non_negotiables) == 0:
-        return False
+
+        if len(due_tasks) == 0:
+            return None
+
+        for task in due_tasks:
+
+            if not task.completed:
+                return False
+
+        return True
 
     for non_negotiable in non_negotiables:
 
